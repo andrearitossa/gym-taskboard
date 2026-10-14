@@ -4,6 +4,8 @@ MuJoCo + Gymnasium environments of the [NIST assembly task boards](https://www.n
 manipulated by a Franka Panda. Implemented: **Task Board #1** (peg insertion, gear meshing,
 electrical connectors, nut threading).
 
+![Task-board GUI: orbiting the scene and jogging the Panda by keyboard](docs/images/gui.gif)
+
 ```bash
 uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -e '.[dev]'
 .venv/bin/python -m pytest tests                  # mechanism + API tests
@@ -32,6 +34,10 @@ uv pip install --python .venv/bin/python -e '.[gui]'
 # Or start the server directly:
 MUJOCO_GL=egl .venv/bin/python -m taskboard_gui --http 8000 --port 5555
 ```
+
+| Manual operator (keyboard IK jog) | Programmatic operator (JSON over TCP) |
+|---|---|
+| ![Manual mode](docs/images/gui-manual.png) | ![Programmatic mode](docs/images/gui-programmatic.png) |
 
 Headless rendering: `MUJOCO_GL=egl`. The Panda model is from
 [mujoco_menagerie](https://github.com/google-deepmind/mujoco_menagerie) (Apache-2.0).
