@@ -1,0 +1,19 @@
+[project]
+name = "gym-taskboard"
+version = "0.1.0"
+description = "MuJoCo Gymnasium environments for the NIST robotic assembly task boards"
+requires-python = ">=3.10"
+dependencies = ["mujoco>=3.3", "gymnasium>=1.0", "numpy", "scipy"]
+
+[project.optional-dependencies]
+dev = ["pytest", "imageio[ffmpeg]"]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["gym_taskboard*"]
+
+[tool.setuptools.package-data]
+gym_taskboard = ["assets/**/*"]

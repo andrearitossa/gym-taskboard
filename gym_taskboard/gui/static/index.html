@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NIST Task Board · MuJoCo</title>
+<style>
+  :root {
+    --bg: #0b0d12; --panel: rgba(255,255,255,.04); --line: rgba(255,255,255,.08);
+    --text: #e8ebf2; --dim: #8a93a6; --accent: #7c9cff; --accent2: #45e3b8; --warn: #ffb547;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: radial-gradient(1200px 600px at 70% -10%, #1b2340 0%, var(--bg) 60%);
+    color: var(--text); font: 14px/1.4 Inter, ui-sans-serif, system-ui, sans-serif;
+    height: 100vh; display: grid; grid-template-columns: 320px 1fr; gap: 16px; padding: 16px; overflow: hidden;
+  }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; backdrop-filter: blur(8px); }
+  aside { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+  h1 { font-size: 15px; letter-spacing: .02em; display: flex; align-items: center; gap: 8px; }
+  h1 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 12px var(--accent2); }
+  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--dim); margin-bottom: 10px; font-weight: 600; }
+  select, input, button { font: inherit; color: var(--text); background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
+  select { width: 100%; }
+  select option { background: #151925; }
+  .row { display: flex; gap: 8px; margin-top: 8px; }
+  .row input { width: 90px; }
+  button { cursor: pointer; transition: .15s; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: linear-gradient(135deg, var(--accent), #9b7cff); border: 0; font-weight: 600; flex: 1; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; background: rgba(255,255,255,.05); border-radius: 12px; padding: 4px; }
+  .seg button { border: 0; background: transparent; border-radius: 9px; padding: 8px; color: var(--dim); }
+  .seg button.on { background: rgba(124,156,255,.18); color: var(--text); box-shadow: inset 0 0 0 1px rgba(124,156,255,.4); }
+  .score { display: flex; align-items: center; gap: 16px; }
+  .ring { --p: 0; width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center;
+    background: conic-gradient(var(--accent2) calc(var(--p) * 1%), rgba(255,255,255,.07) 0); transition: --p .4s; }
+  .ring > div { width: 74px; height: 74px; border-radius: 50%; background: #10131b; display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+  .stats div { color: var(--dim); font-size: 12px; } .stats b { color: var(--text); font-weight: 600; }
+  .parts { display: flex; flex-direction: column; gap: 4px; }
+  .part { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-radius: 8px; font-size: 12.5px; }
+  .part:hover { background: rgba(255,255,255,.04); }
+  .pips { display: flex; gap: 4px; }
+  .pip { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,.05); color: #5b6375; }
+  .pip.on { background: rgba(69,227,184,.15); color: var(--accent2); }
+  main { display: grid; grid-template-rows: 1fr auto; gap: 16px; min-height: 0; }
+  .stage { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #000; min-height: 0; }
+  .stage img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: grab; user-select: none; }
+  .stage img:active { cursor: grabbing; }
+  .badge { position: absolute; top: 14px; left: 14px; padding: 6px 12px; border-radius: 999px; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); font-size: 12px; border: 1px solid var(--line); }
+  .badge.done { color: var(--accent2); border-color: rgba(69,227,184,.5); }
+  .hud { position: absolute; bottom: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; align-items: end; pointer-events: none; }
+  .keys { background: rgba(0,0,0,.55); backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 12px; color: var(--dim); display: grid; grid-template-columns: auto auto; gap: 3px 12px; }
+  kbd { font: 11px ui-monospace, monospace; color: var(--text); background: rgba(255,255,255,.1); border-radius: 5px; padding: 1px 6px; margin-right: 2px; }
+  kbd.on { background: var(--accent); }
+  .gripper { display: flex; gap: 8px; align-items: center; pointer-events: auto; }
+  .gripper button { background: rgba(0,0,0,.55); backdrop-filter: blur(6px); font-size: 12px; padding: 8px 12px; }
+  .gripper button kbd { margin-left: 6px; }
+  .gstate { background: rgba(0,0,0,.55); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 12px; min-width: 120px; text-align: center; transition: .2s; }
+  .gstate.closing, .gstate.opening { color: var(--warn); border-color: rgba(255,181,71,.5); animation: pulse 1s infinite; }
+  .gstate.holding { color: var(--accent2); border-color: rgba(69,227,184,.5); }
+  @keyframes pulse { 50% { opacity: .55; } }
+  .cams { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cam { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 4/3; max-height: 22vh; background: #000; }
+  .cam img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cam span { position: absolute; top: 8px; left: 10px; font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; }
+  pre { font: 11.5px/1.5 ui-monospace, monospace; background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 10px; padding: 10px; color: #b9c3d8; white-space: pre-wrap; }
+  .live { color: var(--accent2); } .idle { color: var(--warn); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<aside>
+  <div class="panel">
+    <h1><span class="dot" id="conn"></span> NIST Task Board · MuJoCo</h1>
+  </div>
+
+  <div class="panel">
+    <h2>Task</h2>
+    <select id="task"></select>
+    <div class="row">
+      <input id="seed" type="number" placeholder="seed" value="0">
+      <button class="primary" id="reset">Reset ⟲</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Operator</h2>
+    <div class="seg">
+      <button id="m-manual" class="on">⌨ Manual</button>
+      <button id="m-programmatic">⇄ Programmatic</button>
+    </div>
+    <div id="prog" class="hidden" style="margin-top:12px">
+      <div style="font-size:12px;margin-bottom:8px">Port <b id="port"></b> · <span id="peer" class="idle">waiting for a client…</span></div>
+      <pre id="snippet"></pre>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Score</h2>
+    <div class="score">
+      <div class="ring" id="ring"><div id="pct">0%</div></div>
+      <div class="stats">
+        <div>points <b id="pts">0 / 0</b></div>
+        <div>step <b id="step">0</b></div>
+        <div>sim time <b id="time">0.0 s</b></div>
+        <div>return <b id="ret">0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="flex:1">
+    <h2>Parts</h2>
+    <div class="parts" id="parts"></div>
+  </div>
+</aside>
+
+<main>
+  <div class="stage">
+    <img id="main" draggable="false" alt="">
+    <div class="badge" id="badge">connecting…</div>
+    <div class="hud">
+      <div class="keys" id="keys">
+        <div><kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> forward / back</div>
+        <div><kbd data-k="q">Q</kbd><kbd data-k="e">E</kbd> rotate gripper</div>
+        <div><kbd data-k="a">A</kbd><kbd data-k="d">D</kbd> left / right</div>
+        <div><kbd>C</kbd><kbd>O</kbd> close / open gripper</div>
+        <div><kbd data-k="r">R</kbd><kbd data-k="f">F</kbd> up / down</div>
+        <div><kbd data-k="shift">Shift</kbd> fine · drag orbit · wheel zoom</div>
+      </div>
+      <div class="gripper">
+        <button id="g-close">Close<kbd>C</kbd></button>
+        <button id="g-open">Open<kbd>O</kbd></button>
+        <div class="gstate" id="gstate">Open</div>
+      </div>
+    </div>
+  </div>
+  <div class="cams">
+    <div class="cam"><img id="hand" alt=""><span>wrist</span></div>
+    <div class="cam"><img id="left" alt=""><span>left</span></div>
+    <div class="cam"><img id="right" alt=""><span>right</span></div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const ws = new WebSocket(`ws://${location.host}/ws`);
+const send = m => ws.readyState === 1 && ws.send(JSON.stringify(m));
+let mode = "manual", keys = new Set();
+
+$("task").onchange = () => send({type: "load", task: $("task").value, seed: +$("seed").value});
+$("reset").onclick = () => send({type: "reset", seed: +$("seed").value});
+for (const m of ["manual", "programmatic"])
+  $("m-" + m).onclick = () => send({type: "mode", mode: m});
+
+ws.onopen = () => $("conn").style.background = "var(--accent2)";
+ws.onclose = () => {  // server stopped (gui.sh killed): close this window, or say so if not allowed
+  $("conn").style.background = "#ff5b6e"; $("badge").textContent = "simulator stopped";
+  window.close();
+};
+ws.onmessage = e => {
+  const f = JSON.parse(e.data);
+  if (f.type === "tasks") $("task").innerHTML = f.tasks.map(t => `<option>${t}</option>`).join("");
+  if (f.type !== "frame") return;
+  for (const [k, img] of Object.entries(f.images)) $(k).src = "data:image/jpeg;base64," + img;
+  if ($("task").value !== f.task && $("task").options.length) $("task").value = f.task;
+  mode = f.mode;
+  $("m-manual").classList.toggle("on", mode === "manual");
+  $("m-programmatic").classList.toggle("on", mode === "programmatic");
+  $("prog").classList.toggle("hidden", mode !== "programmatic");
+  $("keys").classList.toggle("hidden", mode !== "manual");
+  $("port").textContent = f.port;
+  $("peer").textContent = f.peer ? "connected · " + f.peer : "waiting for a client…";
+  $("peer").className = f.peer ? "live" : "idle";
+  $("snippet").textContent =
+`import socket, json
+s = socket.create_connection(("localhost", ${f.port}))
+io = s.makefile("rw")
+def call(**m):
+    io.write(json.dumps(m) + "\\n"); io.flush()
+    return json.loads(io.readline())
+call(cmd="reset", task="${f.task}", seed=0)
+r = call(cmd="step", action=[0]*7 + [-1])
+print(r["score"], r["reward"], r["obs"]["joints"])`;
+  const p = f.max_score ? 100 * f.score / f.max_score : 0;
+  $("ring").style.setProperty("--p", p);
+  $("pct").textContent = Math.round(p) + "%";
+  $("pts").textContent = `${f.score} / ${f.max_score}`;
+  $("step").textContent = `${f.step} / ${f.max_steps}`;
+  $("time").textContent = f.sim_time.toFixed(2) + " s";
+  $("ret").textContent = String(f["return"] ?? 0);
+  const G = {open: "Open", closing: "Closing…", closed: "Closed", opening: "Opening…", holding: "Holding part"};
+  $("gstate").textContent = G[f.grip]; $("gstate").className = "gstate " + f.grip;
+  $("badge").textContent = f.done ? "✓ episode finished — reset to play again" : `${f.task} · ${mode}`;
+  $("badge").classList.toggle("done", f.done);
+  $("parts").innerHTML = Object.entries(f.parts).map(([name, flags]) =>
+    `<div class="part"><span>${name}</span><span class="pips">${
+      Object.entries(flags).map(([k, v]) => `<span class="pip ${v ? "on" : ""}">${k}</span>`).join("")
+    }</span></div>`).join("");
+};
+
+// keyboard (manual operator)
+const keyName = e => e.key === "Shift" ? "shift" : e.key.toLowerCase();
+addEventListener("keydown", e => {
+  if (mode !== "manual" || e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  const k = e.key.toLowerCase();
+  if (k === "c" || k === "o") { if (!e.repeat) send({type: "gripper", action: k === "c" ? "close" : "open"}); return; }
+  keys.add(keyName(e)); sync();
+});
+addEventListener("keyup", e => { keys.delete(keyName(e)); sync(); });
+addEventListener("blur", () => { keys.clear(); sync(); });
+function sync() {
+  send({type: "keys", keys: [...keys]});
+  document.querySelectorAll("kbd[data-k]").forEach(k => k.classList.toggle("on", keys.has(k.dataset.k)));
+}
+
+// give keyboard focus back to the simulator after any click (Space/keys would hit the last button)
+addEventListener("click", e => { if (e.target.closest("button")) e.target.closest("button").blur(); });
+$("task").addEventListener("change", () => $("task").blur());
+
+$("g-close").onclick = () => send({type: "gripper", action: "close"});
+$("g-open").onclick = () => send({type: "gripper", action: "open"});
+
+// mouse orbit / zoom on the 3D view
+let drag = null;
+$("main").onmousedown = e => drag = [e.clientX, e.clientY];
+addEventListener("mouseup", () => drag = null);
+addEventListener("mousemove", e => {
+  if (!drag) return;
+  send({type: "orbit", dx: e.clientX - drag[0], dy: e.clientY - drag[1]});
+  drag = [e.clientX, e.clientY];
+});
+$("main").addEventListener("wheel", e => { e.preventDefault(); send({type: "zoom", d: e.deltaY}); }, {passive: false});
+</script>
+</body>
+</html>
