@@ -34,7 +34,7 @@ if [[ -e /dev/dxg ]]; then
   export GALLIUM_DRIVER=${GALLIUM_DRIVER:-d3d12}
   nvidia-smi -L >/dev/null 2>&1 && export MESA_D3D12_DEFAULT_ADAPTER_NAME=${MESA_D3D12_DEFAULT_ADAPTER_NAME:-NVIDIA}
 fi
-MUJOCO_GL=${MUJOCO_GL:-egl} "$PY" -m gym_taskboard.gui --http "$HTTP" --port "$TCP" &
+MUJOCO_GL=${MUJOCO_GL:-egl} "$PY" -m taskboard_gui --http "$HTTP" --port "$TCP" &
 SERVER=$!
 
 echo -n "Starting simulator"

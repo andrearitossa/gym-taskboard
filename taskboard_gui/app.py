@@ -1,6 +1,6 @@
 """Task-board GUI: browser front-end + programmatic TCP port.
 
-    python -m gym_taskboard.gui [--http 8000] [--port 5555]
+    python -m taskboard_gui [--http 8000] [--port 5555]
 
 The browser (http://localhost:8000) shows a mouse-orbit 3D view, the robot
 cameras, the task picker and the NIST score. Two operators:

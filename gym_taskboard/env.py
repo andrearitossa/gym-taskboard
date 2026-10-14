@@ -79,6 +79,8 @@ class TaskBoardEnv(gym.Env):
             p.body_id = m.body(p.name).id
             p.fixture_id = m.body(f"{p.name}_fixture").id
             p.qadr = m.joint(p.name).qposadr[0]
+            p.collision_geoms = np.flatnonzero(
+                (m.geom_bodyid == p.body_id) & ((m.geom_contype != 0) | (m.geom_conaffinity != 0)))
             if p.coupling:
                 p.coupling.bind(m)
         self.coupled = [p for p in self.parts if p.coupling]
@@ -184,11 +186,24 @@ class TaskBoardEnv(gym.Env):
         return set(r2[r1 == self.board_id]) | set(r1[r2 == self.board_id])
 
     def _in_kit(self, p):
-        d = self.data
+        """All collision-geometry bounds must fit inside the bin (0.1 mm tolerance).
+
+        This is geometric containment; contact and settling are not required.
+        """
+        m, d = self.model, self.data
         R = d.xmat[self.kit_id].reshape(3, 3)
-        x = R.T @ (d.xpos[p.body_id] - d.xpos[self.kit_id])
         w, l, h = scene.BIN_SIZE
-        return abs(x[0]) < w / 2 and abs(x[1]) < l / 2 and x[2] < h
+        t = scene.BIN_WALL
+        lower = np.array([-w / 2 + t, -l / 2 + t, t])
+        upper = np.array([w / 2 - t, l / 2 - t, h])
+        for gid in p.collision_geoms:
+            local_R = R.T @ d.geom_xmat[gid].reshape(3, 3)
+            center, half = m.geom_aabb[gid, :3], m.geom_aabb[gid, 3:]
+            center = R.T @ (d.geom_xpos[gid] - d.xpos[self.kit_id]) + local_R @ center
+            extent = np.abs(local_R) @ half
+            if np.any(center - extent < lower - 0.1 * MM) or np.any(center + extent > upper + 0.1 * MM):
+                return False
+        return True
 
     def status(self):
         """Per active part: NIST score-sheet flags."""

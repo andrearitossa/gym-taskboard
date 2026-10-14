@@ -9,7 +9,14 @@ gym_taskboard/
   scene.py         MjSpec scene: table, Panda, board, kit/bin, cameras, contact settings
   env.py           TaskBoardEnv (Gymnasium): reset protocol, control, observations, scoring
   scoring.py       NIST score sheets, P_S bound, trial statistics
+taskboard_gui/
+  app.py           browser server, manual controls and JSON-over-TCP operator
+  static/          browser interface
 ```
+
+`taskboard_gui` depends on `gym_taskboard`; the environment package does not
+import the GUI. Its web dependencies are available through the `gui` extra.
+Launch it with `python -m taskboard_gui` or `./gui.sh` from the repository.
 
 **Part** = one row of the NIST score sheet. It builds two things:
 - its *fixture* on the board (hole, shaft, bolt, socket), in a frame at the part's board position;

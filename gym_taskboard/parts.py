@@ -19,8 +19,9 @@ STANDOFF = 20 * MM     # plate underside to table
 TABLE_Z = -(PLATE_T + STANDOFF)  # table surface in board frame
 
 
-def _tilt(R):
-    return np.arccos(np.clip(abs(R[2, 2]), -1, 1))
+def _tilt(R, symmetric=False):
+    z = abs(R[2, 2]) if symmetric else R[2, 2]
+    return np.arccos(np.clip(z, -1, 1))
 
 
 class Part:
@@ -71,7 +72,7 @@ class Peg(Part):
 
     def status(self, p, R, data=None):
         bottom = p[2] - abs(R[2, 2]) * self.length / 2
-        aligned = _tilt(R) < np.radians(5) and np.hypot(p[0], p[1]) < 2 * MM
+        aligned = _tilt(R, symmetric=True) < np.radians(5) and np.hypot(p[0], p[1]) < 2 * MM
         inserted = aligned and bottom < -2 * MM
         return inserted, inserted and bottom < TABLE_Z + 1.5 * MM
 
@@ -201,6 +202,12 @@ class HelicalCoupling:
         self.fixture = model.body(f"{n}_fixture").id
         self.free_geoms = np.flatnonzero(model.geom_bodyid == model.body(n).id)
         self.twin_geoms = np.flatnonzero(model.geom_bodyid == model.body(f"{n}_threaded").id)
+        # Preserve both masks, including zeros on visual-only meshes. Enabling
+        # a merged visual mesh would collide its convex hull and close the bore.
+        self._collision_masks = [
+            (ids, model.geom_contype[ids].copy(), model.geom_conaffinity[ids].copy())
+            for ids in (self.twin_geoms, self.free_geoms)
+        ]
         q = model.joint(n)
         self.fq, self.fv = q.qposadr[0], q.dofadr[0]
 
@@ -211,8 +218,9 @@ class HelicalCoupling:
         return data.qpos[self.qs]
 
     def _collide(self, model, twin):
-        for ids, on in ((self.twin_geoms, twin), (self.free_geoms, not twin)):
-            model.geom_contype[ids] = model.geom_conaffinity[ids] = int(on)
+        for (ids, contype, conaffinity), on in zip(self._collision_masks, (twin, not twin)):
+            model.geom_contype[ids] = contype if on else 0
+            model.geom_conaffinity[ids] = conaffinity if on else 0
 
     def _shadow(self, data):
         """Write the twin's pose / velocity into the free body."""

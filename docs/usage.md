@@ -43,6 +43,11 @@ Reward is the increase of the NIST score sheet ([RAL-SI-2020-B-1](https://www.ni
 | seated | 2 | placed in the bin | 1 |
 | placed (touches the board) | 1 | | |
 
+For disassembly, `in_kit` requires the part's collision-geometry bounds to fit
+fully inside the bin walls, above its floor and below its rim, with a 0.1 mm
+tolerance for contact penetration. Bounds are evaluated in the bin frame,
+including rotated bins and parts. Contact and settling are not required.
+
 `info` holds `score`, `max_score`, `completion` and per-part flags. For trial
 statistics, `gym_taskboard.scoring` has `success_probability(m, n, CL)` (the NIST
 P_S bound) and `summarize(times, completions)` (mean, std, 95% CI).

@@ -15,6 +15,7 @@ BOARD_XY = (0.50, -0.20)    # nominal centres on the table (robot base at origin
 KIT_XY = (0.45, 0.27)
 BOARD_Z = PLATE_T + STANDOFF  # plate top above the table
 BIN_SIZE = (0.30, 0.30, 0.08)
+BIN_WALL = 0.005
 
 # Contact model. dt = 1 ms resolves 0.05-0.2 mm clearances; solref time
 # constant = 4 dt (stiffest stable value, MuJoCo recommends >= 2 dt); solimp
@@ -76,7 +77,7 @@ def build(board, parts, mode):
               contype=0, conaffinity=0)
     else:  # disassembly: parts go into an open bin
         kit = world.add_body(name="kit", mocap=True, pos=[*KIT_XY, 0])
-        (w, d, h), t = BIN_SIZE, 0.005
+        (w, d, h), t = BIN_SIZE, BIN_WALL
         kw = dict(rgba=[0.3, 0.45, 0.7, 1])
         g.box(kit, (w, d, t), (0, 0, t / 2), **kw)
         for s in (-1, 1):
