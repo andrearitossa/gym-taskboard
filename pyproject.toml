@@ -2,6 +2,16 @@
 name = "gym-taskboard"
 version = "0.1.0"
 description = "MuJoCo Gymnasium environments for the NIST robotic assembly task boards"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "gym_taskboard/assets/franka_emika_panda/LICENSE"]
+authors = [{ name = "Andrea Ritossa", email = "andre.ritossa@gmail.com" }]
+keywords = ["mujoco", "gymnasium", "robotics", "reinforcement-learning", "manipulation"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 requires-python = ">=3.10"
 dependencies = ["mujoco>=3.3", "gymnasium>=1.0", "numpy", "scipy"]
 
@@ -9,12 +19,16 @@ dependencies = ["mujoco>=3.3", "gymnasium>=1.0", "numpy", "scipy"]
 gui = ["aiohttp", "Pillow"]
 dev = ["pytest", "imageio[ffmpeg]"]
 
+[project.urls]
+Homepage = "https://github.com/andrearitossa/gym-taskboard"
+
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["gym_taskboard*", "taskboard_gui*"]
+exclude = ["tests*", "scripts*", "docs*", "logs*"]
 
 [tool.setuptools.package-data]
 gym_taskboard = ["assets/**/*"]

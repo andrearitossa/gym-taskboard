@@ -4,7 +4,7 @@ MuJoCo + Gymnasium environments of the [NIST assembly task boards](https://www.n
 manipulated by a Franka Panda. Implemented: **Task Board #1** (peg insertion, gear meshing,
 electrical connectors, nut threading).
 
-![Task-board GUI: orbiting the scene and jogging the Panda by keyboard](docs/images/gui.gif)
+![Task-board GUI: orbiting the scene and jogging the Panda by keyboard](https://raw.githubusercontent.com/andrearitossa/gym-taskboard/main/docs/images/gui.gif)
 
 ```bash
 uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -e '.[dev]'
@@ -22,8 +22,8 @@ obs, reward, terminated, truncated, info = env.step(env.action_space.sample())
 print(info["score"], info["max_score"], info["parts"]["gear_small"])
 ```
 
-Docs: [usage](docs/usage.md) · [architecture](docs/architecture.md) ·
-[Task Board #1](docs/taskboard1.md) · [physics](docs/physics.md)
+Docs: [usage](https://github.com/andrearitossa/gym-taskboard/blob/main/docs/usage.md) · [architecture](https://github.com/andrearitossa/gym-taskboard/blob/main/docs/architecture.md) ·
+[Task Board #1](https://github.com/andrearitossa/gym-taskboard/blob/main/docs/taskboard1.md) · [physics](https://github.com/andrearitossa/gym-taskboard/blob/main/docs/physics.md)
 
 The browser GUI lives in the separate `taskboard_gui` package and uses the
 environment as a client. Install its optional dependencies and launch it with:
@@ -37,7 +37,11 @@ MUJOCO_GL=egl .venv/bin/python -m taskboard_gui --http 8000 --port 5555
 
 | Manual operator (keyboard IK jog) | Programmatic operator (JSON over TCP) |
 |---|---|
-| ![Manual mode](docs/images/gui-manual.png) | ![Programmatic mode](docs/images/gui-programmatic.png) |
+| ![Manual mode](https://raw.githubusercontent.com/andrearitossa/gym-taskboard/main/docs/images/gui-manual.png) | ![Programmatic mode](https://raw.githubusercontent.com/andrearitossa/gym-taskboard/main/docs/images/gui-programmatic.png) |
 
 Headless rendering: `MUJOCO_GL=egl`. The Panda model is from
 [mujoco_menagerie](https://github.com/google-deepmind/mujoco_menagerie) (Apache-2.0).
+
+## License
+
+MIT, see [LICENSE](https://github.com/andrearitossa/gym-taskboard/blob/main/LICENSE). The bundled Panda model keeps its Apache-2.0 license.
