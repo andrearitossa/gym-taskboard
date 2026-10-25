@@ -192,7 +192,8 @@ class HelicalCoupling:
         for geom in t.geoms:
             geom.friction, geom.rgba = FRICTION, [0, 0, 0, 0]  # the shadow is what gets drawn
         spec.add_equality(name=f"{n}_screw", type=mujoco.mjtEq.mjEQ_JOINT, name1=f"{n}_slide",
-                          name2=f"{n}_hinge", data=[0, self.k, 0, 0, 0] + [0] * 6, **self.HARD)
+                          name2=f"{n}_hinge",
+                          data=[0, self.k, 0, 0, 0] + [0] * (mujoco.mjNEQDATA - 5), **self.HARD)
 
     def bind(self, model):
         n = self.part.name

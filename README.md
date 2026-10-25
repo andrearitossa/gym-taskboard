@@ -6,8 +6,10 @@ electrical connectors, nut threading).
 
 ![Task-board GUI: orbiting the scene and jogging the Panda by keyboard](https://raw.githubusercontent.com/andrearitossa/gym-taskboard/main/docs/images/gui.gif)
 
+Requires Python 3.13 or newer.
+
 ```bash
-uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -e '.[dev]'
+uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[dev]'
 .venv/bin/python -m pytest tests                  # mechanism + API tests
 .venv/bin/python scripts/view.py --mode disassembly   # interactive viewer
 .venv/bin/python scripts/demo_peg.py              # scripted Panda inserts a peg

@@ -1,6 +1,6 @@
 [project]
 name = "gym-taskboard"
-version = "0.1.0"
+version = "0.2.0"
 description = "MuJoCo Gymnasium environments for the NIST robotic assembly task boards"
 readme = "README.md"
 license = "MIT"
@@ -9,10 +9,11 @@ authors = [{ name = "Andrea Ritossa", email = "andre.ritossa@gmail.com" }]
 keywords = ["mujoco", "gymnasium", "robotics", "reinforcement-learning", "manipulation"]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 dependencies = ["mujoco>=3.3", "gymnasium>=1.0", "numpy", "scipy"]
 
 [project.optional-dependencies]
